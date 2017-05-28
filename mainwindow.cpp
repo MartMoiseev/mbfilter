@@ -16,7 +16,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    array = new QList<Chunk>();
 }
 
 /**
@@ -25,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete array;
 }
 
 /**
@@ -48,95 +46,42 @@ void MainWindow::on_actionOpen_triggered()
      */
     if(!fileName.isEmpty())
     {
-        /*
-         * Выбираем файл
-         */
-        QFile file(fileName);
-
-        /*
-         * Пытаемся открыть файл
-         */
-        if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            /*
-             * Читаем первую строчку
-             */
-            QString line = file.readLine();
-
-            /*
-             * Пролистываем до надписи [DATA]
-             */
-            while (line != "[DATA]\n") {
-                line = file.readLine();
-            }
-
-            /*
-             * Читаем остальные данные до конца файла
-             */
-            while(!line.isEmpty())
-            {
-                /*
-                 * Создаем чанк
-                 */
-                Chunk chunk;
-
-                /*
-                 * Заполняем чанк значениями
-                 */
-                for(int number = 0; number < Chunk::SIZE; number++)
-                {
-                    /*
-                     * Читаем новую строчку данных
-                     */
-                    line = file.readLine();
-
-                    /*
-                     * Если данные есть (чанк не прервался раньше)
-                     */
-                    if(!line.isEmpty())
-                    {
-                        /*
-                         * Вытаскиваем данные в виде строк
-                         */
-                        QStringList list = line.split("\t");
-
-                        /*
-                         * Для каждого канала
-                         */
-                        for(int cannel = 0; cannel < list.size(); cannel++)
-                        {
-                            /*
-                             * Вытаскиваем само число в виде строки
-                             */
-                            QString str = list.at(cannel);
-
-                            /*
-                             * Записываем в чанк число, заменив запятую на точку
-                             */
-                            chunk.data[number][cannel] = str.replace(",", ".").toFloat();
-                        }
-                    } else {
-                        /*
-                         * Чанк прервался раньше - выходим из цикла
-                         */
-                        break;
-                    }
-                }
-                /*
-                 * Добавляем чанк в массив
-                 */
-                array->push_back(chunk);
-
-                /*
-                 * Флушим файл
-                 */
-                file.flush();
-            }
-
-            /*
-             * Закрываем файл
-             */
-            file.close();
-        }
+        ui->graphicsView->LoadFromFile(fileName);
+        ui->graphicsView->Render();
     }
+}
+
+/**
+ * @brief MainWindow::on_pushButton_clicked
+ */
+void MainWindow::on_pushButton_clicked()
+{
+    ui->graphicsView->Test();
+}
+
+/**
+ * @brief MainWindow::on_xZoom_valueChanged
+ * @param arg1
+ */
+void MainWindow::on_xZoom_valueChanged(double arg1)
+{
+    ui->graphicsView->setXZoom(arg1);
+}
+
+/**
+ * @brief MainWindow::on_yZoom_valueChanged
+ * @param arg1
+ */
+void MainWindow::on_yZoom_valueChanged(double arg1)
+{
+    ui->graphicsView->setYZoom(arg1);
+}
+
+/**
+ * @brief MainWindow::on_widthZoom_valueChanged
+ * @param arg1
+ */
+void MainWindow::on_widthZoom_valueChanged(double arg1)
+{
+    ui->graphicsView->setWidthZoom(arg1);
 }

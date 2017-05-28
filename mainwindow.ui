@@ -61,6 +61,76 @@
           <string>Наложить</string>
          </property>
         </widget>
+        <widget class="QPushButton" name="pushButton">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>90</y>
+           <width>75</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Отрисовать</string>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="xZoom">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>150</y>
+           <width>101</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="minimum">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="yZoom">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>180</y>
+           <width>101</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="minimum">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+        <widget class="QDoubleSpinBox" name="widthZoom">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>220</y>
+           <width>101</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="minimum">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
        </widget>
       </item>
       <item>
@@ -71,7 +141,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGraphicsView" name="graphicsView"/>
+       <widget class="Chart" name="graphicsView"/>
       </item>
      </layout>
     </item>
@@ -135,6 +205,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Chart</class>
+   <extends>QGraphicsView</extends>
+   <header>chart.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
