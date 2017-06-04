@@ -22,6 +22,23 @@ public:
 
 public:
     /**
+     * @brief Set
+     * @param _value
+     * @param _number
+     * @param _canal
+     */
+    void    Set(float _value, int _number, int _canal);
+
+    /**
+     * @brief Get
+     * @param _number
+     * @param _canal
+     * @return
+     */
+    float   Get(int _number, int _canal) const;
+
+public:
+    /**
      * @brief data Данные
      */
     float   data[SIZE][CHANNELS];
