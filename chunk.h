@@ -7,41 +7,31 @@
 class Chunk
 {
 public:
-    Chunk();
-
-public:
     /**
      * @brief SIZE Размер чанка 20000
      */
     static const int SIZE = 20000;
 
-    /**
-     * @brief CHANNELS Количество каналов
-     */
-    static const int CHANNELS = 16;
-
 public:
     /**
-     * @brief Set
-     * @param _value
-     * @param _number
-     * @param _canal
+     * @brief set
+     * @param value
+     * @param number
      */
-    void    Set(float _value, int _number, int _canal);
+    void    set(float value, int number);
 
     /**
-     * @brief Get
-     * @param _number
-     * @param _canal
+     * @brief get
+     * @param number
      * @return
      */
-    float   Get(int _number, int _canal) const;
+    float   get(int number) const;
 
 public:
     /**
      * @brief data Данные
      */
-    float   data[SIZE][CHANNELS];
+    float   _data[SIZE];
 };
 
 #endif // CHUNK_H

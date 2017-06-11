@@ -1,34 +1,27 @@
 #include "chunk.h"
 
 /**
- * @brief Chunk::Chunk
+ * @brief MyoChunk::set
+ * @param value
+ * @param number
  */
-Chunk::Chunk()
+void Chunk::set(float value, int number)
 {
-
+    if(number >= 0 && number < Chunk::SIZE) {
+        this->_data[number] = value;
+    }
 }
 
 /**
- * @brief MyoChunk::Set
- * @param _value
- * @param _number
- * @param _canal
- */
-void Chunk::Set(float _value, int _number, int _canal)
-{
-    if(_number >= 0 && _number < Chunk::SIZE && _canal >= 0 && _canal < Chunk::CHANNELS)
-        data[_number][_canal] = _value;
-}
-
-/**
- * @brief MyoChunk::Get
- * @param _number
- * @param _canal
+ * @brief MyoChunk::get
+ * @param number
  * @return
  */
-float Chunk::Get(int _number, int _canal) const
+float Chunk::get(int number) const
 {
-    if(_number >= 0 && _number < Chunk::SIZE && _canal >= 0 && _canal < Chunk::CHANNELS)
-         return data[_number][_canal];
-    else return -1;
+    if(number >= 0 && number < Chunk::SIZE) {
+         return _data[number];
+    } else {
+        return 0;
+    }
 }
