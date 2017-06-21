@@ -12,11 +12,14 @@ public:
     void    set(long position, float value);
     float   get(long position) const;
     long    length() const;
+    QString getName() const;
+    void    setName(QString name);
 
 private:
     QList<Chunk*>   _chunks;
     long            _length = 0;
     int             _current = -1;
+    QString         _name;
 };
 
 #endif // CANAL_H

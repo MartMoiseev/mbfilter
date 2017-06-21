@@ -66,3 +66,21 @@ long Canal::length() const
     // Возвращаем количество элементов
     return Chunk::SIZE * this->_current + this->_length;
 }
+
+/**
+ * @brief Canal::getName
+ * @return
+ */
+QString Canal::getName() const
+{
+    return this->_name;
+}
+
+/**
+ * @brief Canal::setName
+ * @param name
+ */
+void Canal::setName(QString name)
+{
+    this->_name = name;
+}

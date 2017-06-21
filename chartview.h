@@ -15,19 +15,27 @@ public:
     void    setCanal(Canal* canal);
     void    setZoom(qreal xZoom, qreal yZoom);
     void    renderData(bool saveScroll = false);
-    void    filter(int gate);
-    void    cut(int gate, int cutout = 10);
 
     void    resizeEvent(QResizeEvent *event);
 
+public slots:
+    void    preview();
+    void    filter();
+    void    zoomx(int x);
+    void    zoomy(int y);
+    void    setGate(int gate);
+    void    setCutout(int cutout);
+
 private:
-    Canal*              _canal;
-    QGraphicsScene*     _scene;
-    QGraphicsPathItem*  _chart;
-    QGraphicsPathItem*  _filter;
+    Canal*              _canal = nullptr;
+    QGraphicsScene*     _scene = nullptr;
+    QGraphicsPathItem*  _chart = nullptr;
+    QGraphicsPathItem*  _filter = nullptr;
 
     qreal               _xZoom = 1.0;
     qreal               _yZoom = 1.0;
+    int                 _gate = 50;
+    int                 _cutout = 10;
 };
 
 #endif // CHARTVIEW_H

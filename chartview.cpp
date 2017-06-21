@@ -15,7 +15,7 @@ ChartView::ChartView(QWidget *parent)
     this->_chart = new QGraphicsPathItem();
 
     this->_filter = new QGraphicsPathItem();
-    this->_filter->setPen(QPen(QColor(255, 0, 0, 128)));
+    this->_filter->setPen(QPen(QColor(128, 0, 0, 16)));
 
     //QPen tiny(Qt::blue);
     //_chart->setPen(tiny);
@@ -42,7 +42,7 @@ void ChartView::setCanal(Canal *canal)
 
     delete this->_filter;
     this->_filter = new QGraphicsPathItem();
-    this->_filter->setPen(QPen(QColor(255, 0, 0, 128)));
+    this->_filter->setPen(QPen(QColor(128, 0, 0, 16)));
     this->_scene->addItem(this->_filter);
 }
 
@@ -105,13 +105,15 @@ void ChartView::renderData(bool saveScroll)
  */
 void ChartView::resizeEvent(QResizeEvent *event)
 {
-    //this->renderData();
+    if (this->_canal) {
+        this->renderData();
+    }
 }
 
 /**
  * @brief ChartView::filter
  */
-void ChartView::filter(int gate)
+void ChartView::preview()
 {
     QPainterPath path;
 
@@ -119,14 +121,14 @@ void ChartView::filter(int gate)
         float last = this->_canal->get(i - 1);
         float current = this->_canal->get(i);
 
-        if (abs(current - last) > gate) {
-            path.moveTo(i / _xZoom, -100 / _yZoom);
-            path.lineTo(i / _xZoom, 100 / _yZoom);
+        if (abs(current - last) > _gate) {
+            path.moveTo(i / _xZoom, -300 / _yZoom);
+            path.lineTo(i / _xZoom, 300 / _yZoom);
         }
     }
 
     this->_filter->setPath(path);
-    this->_filter->setPen(QPen(QBrush(QColor(255, 0, 0, 64)), 5.0));
+    this->_filter->setPen(QPen(QBrush(QColor(255, 0, 0, 16)), 5.0));
 }
 
 /**
@@ -134,10 +136,10 @@ void ChartView::filter(int gate)
  * @param gate
  * @param cutout
  */
-void ChartView::cut(int gate, int cutout)
+void ChartView::filter()
 {
     // Обрабатываем все данные
-    for(long i = cutout; i < this->_canal->length() - cutout; i++) {
+    for(long i = _cutout; i < this->_canal->length() - _cutout; i++) {
 
         // Вытаскиваем текущее и соседние значения
         float last = this->_canal->get(i - 1);
@@ -145,15 +147,15 @@ void ChartView::cut(int gate, int cutout)
         float next = this->_canal->get(i + 1);
 
         // Определяем пик
-        if (abs(current - last) > gate) {                       
+        if (abs(current - last) > _gate) {
 
             // Если пик найден - фильтруем данные в заданном диапазоне
-            for (int t = i - cutout; t < i + cutout; t++) {
+            for (int t = i - _cutout; t < i + _cutout; t++) {
 
                 // Используем скользящее среднее - ищем среднее за n предыдущих
                 qreal middle = 0.0;
-                for (long j = t - cutout; j <= t; j++) {
-                    middle += this->_canal->get(j) / cutout;
+                for (long j = t - _cutout; j <= t; j++) {
+                    middle += this->_canal->get(j) / _cutout;
                 }
 
                 // Присваиваем новое значение
@@ -161,9 +163,47 @@ void ChartView::cut(int gate, int cutout)
             }
 
             // Пропускаем отфильтрованный участок
-            i += cutout;
+            i += _cutout;
         }
     }
     // Перерисовываем график
     this->renderData(true);
+}
+
+/**
+ * @brief ChartView::zoomx
+ * @param x
+ */
+void ChartView::zoomx(int x)
+{
+    this->_xZoom = x;
+    this->renderData();
+}
+
+/**
+ * @brief ChartView::zoomy
+ * @param y
+ */
+void ChartView::zoomy(int y)
+{
+    this->_yZoom = y / 10.0;
+    this->renderData();
+}
+
+/**
+ * @brief ChartView::setGate
+ * @param gate
+ */
+void ChartView::setGate(int gate)
+{
+    this->_gate = gate;
+}
+
+/**
+ * @brief ChartView::setCutout
+ * @param cutout
+ */
+void ChartView::setCutout(int cutout)
+{
+    this->_cutout = cutout;
 }
