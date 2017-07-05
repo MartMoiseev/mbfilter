@@ -35,10 +35,11 @@ ChartView::ChartView(QWidget *parent)
  * @brief ChartView::setCanal
  * @param canal
  */
-void ChartView::setCanal(Canal *canal)
+void ChartView::setCanal(Canal *canal, Canal *canalNew)
 {
     // Устанавливаем ссылку на канал
-    this->_canal = canal;
+    this->_original = canal;
+    this->_canalNew = canalNew;
 
     delete this->_filter;
     this->_filter = new QGraphicsPathItem();
@@ -68,35 +69,38 @@ void ChartView::setZoom(qreal xZoom, qreal yZoom)
  * @brief ChartView::renderData
  * @param data
  */
-void ChartView::renderData(bool saveScroll)
+void ChartView::renderData()
 {
     int scroll = this->horizontalScrollBar()->value();
 
     // Создаем график
     QPainterPath path;
 
-    long length = this->_canal->length();
+    Canal* canal = nullptr;
+    if (_preview) {
+        canal = _canalNew;
+    } else {
+        canal = _original;
+    }
+
+    long length = canal->length();
 
     // Рисуем горизонтальную синюю линию
     _scene->addLine(0, 0, length / _xZoom, 0, QPen(Qt::blue));
 
     for(long i = 0; i < length; i++) {
-        float value = this->_canal->get(i);
+        float value = canal->get(i);
         path.lineTo(i / _xZoom, -value / _yZoom);
     }
 
     this->_chart->setPath(path);
 
     //настройка сцены
-    this->_scene->setSceneRect(0, -350, length / _xZoom, 700);
+    this->_scene->setSceneRect(0, -110.0, length / _xZoom, 0);
 
-    this->ensureVisible(_scene->sceneRect());
-    this->fitInView(_scene->sceneRect(), Qt::KeepAspectRatioByExpanding);
-    if (!saveScroll) {
-        this->horizontalScrollBar()->setValue(this->horizontalScrollBar()->minimum());
-    } else {
-        this->horizontalScrollBar()->setValue(scroll);
-    }
+    //this->ensureVisible(_scene->sceneRect());
+    //this->fitInView(_scene->sceneRect(), Qt::KeepAspectRatioByExpanding);
+    this->horizontalScrollBar()->setValue(scroll);
 }
 
 /**
@@ -105,21 +109,21 @@ void ChartView::renderData(bool saveScroll)
  */
 void ChartView::resizeEvent(QResizeEvent *event)
 {
-    if (this->_canal) {
+    if (this->_canalNew) {
         this->renderData();
     }
 }
 
 /**
- * @brief ChartView::filter
+ * @brief ChartView::preview
  */
 void ChartView::preview()
 {
     QPainterPath path;
 
-    for(long i = 1; i < this->_canal->length(); i++) {
-        float last = this->_canal->get(i - 1);
-        float current = this->_canal->get(i);
+    for(long i = 1; i < this->_canalNew->length(); i++) {
+        float last = this->_canalNew->get(i - 1);
+        float current = this->_canalNew->get(i);
 
         if (abs(current - last) > _gate) {
             path.moveTo(i / _xZoom, -300 / _yZoom);
@@ -132,42 +136,97 @@ void ChartView::preview()
 }
 
 /**
- * @brief ChartView::cut
- * @param gate
- * @param cutout
+ * @brief ChartView::filter
  */
 void ChartView::filter()
 {
-    // Обрабатываем все данные
-    for(long i = _cutout; i < this->_canal->length() - _cutout; i++) {
+    // Клонируем весь канал, для отмены
+    this->_history.push_back(this->_canalNew->clone());
 
-        // Вытаскиваем текущее и соседние значения
-        float last = this->_canal->get(i - 1);
-        float current = this->_canal->get(i);
-        float next = this->_canal->get(i + 1);
+    // Выбираем последний канал как текущий
+    this->_canalNew = this->_history.last();
+
+    // Обрабатываем все данные
+    for(long i = _cutout; i < this->_canalNew->length() - _cutout; i++) {
+
+        // Вытаскиваем текущее и предыдущее значения
+        float last = this->_canalNew->get(i - 1);
+        float current = this->_canalNew->get(i);
 
         // Определяем пик
         if (abs(current - last) > _gate) {
+            switch(this->_spacer) {
 
-            // Если пик найден - фильтруем данные в заданном диапазоне
-            for (int t = i - _cutout; t < i + _cutout; t++) {
+            default:
+            case Spacer::CHAIN:
+                this->filterChain(i);
+                break;
 
-                // Используем скользящее среднее - ищем среднее за n предыдущих
-                qreal middle = 0.0;
-                for (long j = t - _cutout; j <= t; j++) {
-                    middle += this->_canal->get(j) / _cutout;
-                }
-
-                // Присваиваем новое значение
-                this->_canal->set(t, middle);
+            case Spacer::MIDDLE:
+                this->filterMiddle(i);
+                break;
             }
 
             // Пропускаем отфильтрованный участок
             i += _cutout;
         }
     }
+    _preview = true;
+    emit changeBypass(_preview);
+
     // Перерисовываем график
-    this->renderData(true);
+    this->renderData();
+}
+
+/**
+ * @brief ChartView::filterMiddle
+ * @param position
+ */
+void ChartView::filterMiddle(long position) {
+    // Используем среднее
+    qreal middle = 0.0;
+    long start = position - _cutout;
+    long end = position + _cutout;
+
+    for (long i = start; i <= end; i++) {
+        middle += this->_canalNew->get(i) / (_cutout * 2.0);
+    }
+
+    for (long pos = start; pos < end; pos++) {
+        this->_canalNew->set(pos, middle);
+    }
+}
+
+/**
+ * @brief ChartView::filterChain
+ * @param position
+ */
+void ChartView::filterChain(long position) {
+    // Используем среднее
+    qreal middle = 0.0;
+    long start = position - _cutout;
+    long end = position + _cutout;
+
+    for (long i = start; i <= end; i++) {
+        middle += this->_canalNew->get(i) / (_cutout * 2.0);
+    }
+
+    for (long pos = start; pos < end; pos++) {
+        this->_canalNew->set(pos, middle);
+    }
+}
+
+/**
+ * @brief ChartView::filterZero
+ * @param position
+ */
+void ChartView::filterZero(long position) {
+    long start = position - _cutout;
+    long end = position + _cutout;
+
+    for (long pos = start; pos < end; pos++) {
+        this->_canalNew->set(pos, 0.0);
+    }
 }
 
 /**
@@ -206,4 +265,85 @@ void ChartView::setGate(int gate)
 void ChartView::setCutout(int cutout)
 {
     this->_cutout = cutout;
+}
+
+/**
+ * @brief ChartView::setSpacer
+ * @param spacer
+ */
+void ChartView::setSpacer(int spacer) {
+    this->_spacer = spacer;
+}
+
+/**
+ * @brief ChartView::setPreview
+ * @param preview
+ */
+void ChartView::setPreview(bool preview)
+{
+    _preview = preview;
+    renderData();
+}
+
+/**
+ * @brief ChartView::undo
+ */
+void ChartView::undo()
+{
+    if (_history.length() > 1) {
+        this->_history.pop_back();
+        this->_canalNew = _history.last();
+        this->renderData();
+    } else {
+        if (_history.length() == 1) {
+            this->_canalNew = _original;
+            this->renderData();
+        }
+    }
+}
+
+/**
+ * @brief ChartView::mousePressEvent
+ * @param event
+ */
+void ChartView::mousePressEvent(QMouseEvent *event)
+{
+    _origin = event->pos();
+    if (_rubberBand == nullptr) {
+        _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    }
+    _rubberBand->setGeometry(QRect(_origin, QSize()));
+    _rubberBand->show();
+}
+
+/**
+ * @brief ChartView::mouseMoveEvent
+ * @param event
+ */
+void ChartView::mouseMoveEvent(QMouseEvent *event)
+{
+    _rubberBand->setGeometry(QRect(_origin, event->pos()).normalized());
+}
+
+/**
+ * @brief ChartView::mouseReleaseEvent
+ * @param event
+ */
+void ChartView::mouseReleaseEvent(QMouseEvent *event)
+{
+    _rubberBand->hide();
+    QPoint pos = _rubberBand->pos();
+    QRect rect = _rubberBand->rect();
+
+    int scrollLeft = this->horizontalScrollBar()->value();
+
+    QPainterPath path;
+    path.moveTo(pos.x() * _xZoom + scrollLeft * _xZoom, -300 / _yZoom);
+    path.lineTo(pos.x() * _xZoom + scrollLeft * _xZoom, 300 / _yZoom);
+
+    path.moveTo(pos.x() * _xZoom + rect.right() * _xZoom + scrollLeft * _xZoom, -300 / _yZoom);
+    path.lineTo(pos.x() * _xZoom + rect.right() * _xZoom + scrollLeft * _xZoom, 300 / _yZoom);
+
+    this->_filter->setPath(path);
+    this->_filter->setPen(QPen(QBrush(QColor(0, 255, 0, 192)), 10.0));
 }

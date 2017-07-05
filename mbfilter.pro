@@ -6,7 +6,8 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4):   QT += widgets
+                                    QT += printsupport
 
 TARGET = mbfilter
 TEMPLATE = app
@@ -27,13 +28,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     chunk.cpp \
     chartview.cpp \
-    data.cpp \
-    canal.cpp
+    canal.cpp \
+    spacer.cpp \
+    qcustomplot.cpp \
+    filter.cpp \
+    data.cpp
 
 HEADERS  += mainwindow.h \
     chunk.h \
     chartview.h \
-    data.h \
-    canal.h
+    canal.h \
+    spacer.h \
+    qcustomplot.h \
+    filter.h \
+    data.h
 
 FORMS    += mainwindow.ui

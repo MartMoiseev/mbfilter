@@ -11,7 +11,7 @@
 #include "data.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -23,17 +23,11 @@ public:
     ~MainWindow();
 
 public:
-    void addLayout(Canal* canal);
+    void addLayout(Canal* canal, Canal* canalNew);
 
 private slots:
     void on_actionOpen_triggered();
     void on_actionSave_triggered();
-
-    void on_gate_1_valueChanged(int arg1);
-    void on_preview_1_clicked();
-    void on_filter_1_clicked();
-    void on_zoomx_1_valueChanged(int value);
-    void on_zoomy_1_valueChanged(int value);
 
 private:
     Ui::MainWindow*     _ui = nullptr;

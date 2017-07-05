@@ -14,6 +14,9 @@ public:
     long    length() const;
     QString getName() const;
     void    setName(QString name);
+    Canal*  clone();
+    QVector<double>  getData();
+    QVector<double>  getNumbers();
 
 private:
     QList<Chunk*>   _chunks;

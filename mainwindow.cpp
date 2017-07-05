@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "QFileDialog.h"
 #include "QFile.h"
+#include "qcustomplot.h"
 
 #include <QByteArray>
 #include <QDebug.h>
@@ -10,6 +11,8 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QMessageBox>
 
 /**
  * @brief MainWindow::MainWindow
@@ -24,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _splitter = new QSplitter();
     _splitter->setOrientation(Qt::Vertical);
-    _splitter->setChildrenCollapsible(false);
+    //_splitter->setChildrenCollapsible(false);
 
     _ui->canalLayout->addWidget(_splitter);
 }
@@ -72,15 +75,17 @@ void MainWindow::on_actionOpen_triggered()
 
         int max = this->_data->getCount();
         for (int c = 0; c < max; c++) {
-            this->addLayout(this->_data->get(c));
+            this->addLayout(this->_data->get(c), this->_data->getNew(c));
         }
+
+        QMessageBox::information(this, "Загрузка завершена", "Файл " + fileName + " успешно загружен.");
     }
 }
 
 /**
  * @brief MainWindow::addLayout
  */
-void MainWindow::addLayout(Canal* canal)
+void MainWindow::addLayout(Canal* canal, Canal* canalNew)
 {
     QSizePolicy expand(QSizePolicy::Expanding, QSizePolicy::Expanding);
     expand.setHorizontalStretch(1);
@@ -88,6 +93,9 @@ void MainWindow::addLayout(Canal* canal)
 
     QLabel* label = new QLabel;
     label->setText(canal->getName());
+
+    QPushButton* undo = new QPushButton(this);
+    undo->setText("<<");
 
     QSpinBox* gate = new QSpinBox(this);
     gate->setSuffix(" ед");
@@ -109,9 +117,10 @@ void MainWindow::addLayout(Canal* canal)
     cutout->setValue(10);
     cutout->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
-    QPushButton* filter = new QPushButton(this);
-    filter->setText("Отфильтровать");
+    QPushButton* filter = new QPushButton("Отфильтровать", this);
     filter->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+
+    QCheckBox* bypass = new QCheckBox("Filter", this);
 
     QSlider* zoomx = new QSlider(this);
     zoomx->setMinimum(1);
@@ -126,26 +135,27 @@ void MainWindow::addLayout(Canal* canal)
     leftLayout->addWidget(preview);
     leftLayout->addWidget(cutout);
     leftLayout->addWidget(filter);
-    leftLayout->addWidget(zoomx);
-    leftLayout->addStretch();
+    leftLayout->addWidget(bypass);
+    leftLayout->addWidget(undo);
 
-    ChartView* chart = new ChartView(this);
-    chart->setSizePolicy(expand);
-    chart->setCanal(canal);
-    chart->setFixedHeight(250);
-    chart->renderData();
+    QCustomPlot* plot = new QCustomPlot();
 
-    QSlider* zoomy = new QSlider(this);
-    zoomy->setMinimum(1);
-    zoomy->setMaximum(20);
-    zoomy->setValue(10);
-    zoomy->setInvertedAppearance(true);
-    zoomy->setTickPosition(QSlider::TicksBothSides);
-    zoomy->setTickInterval(9);
+    plot->setSizePolicy(expand);
+    plot->addGraph();
+    plot->setInteraction(QCP::iRangeDrag, true);
+    plot->setInteraction(QCP::iRangeZoom, true);
+    plot->graph(0)->setData(canal->getNumbers(), canal->getData());
+
+    plot->xAxis->setLabel("msec");
+    plot->yAxis->setLabel("mkV");
+
+    plot->xAxis->setRange(0, canal->length());
+    plot->yAxis->setRange(-500, 500);
+
+    plot->replot();
 
     QHBoxLayout *rightLayout = new QHBoxLayout;
-    rightLayout->addWidget(chart);
-    rightLayout->addWidget(zoomy);
+    rightLayout->addWidget(plot);
 
     QHBoxLayout *mainLayout = new QHBoxLayout();
     mainLayout->addLayout(leftLayout);
@@ -157,15 +167,15 @@ void MainWindow::addLayout(Canal* canal)
     _splitter->addWidget(canalWidget);
 
     // предварительный просмотр
-    connect(preview, SIGNAL(clicked(bool)), chart, SLOT(preview()));
+    //connect(preview, SIGNAL(clicked(bool)), chart, SLOT(preview()));
+    //connect(bypass, SIGNAL(clicked(bool)), chart, SLOT(setPreview(bool)));
+    //connect(chart, SIGNAL(changeBypass(bool)), bypass, SLOT(setChecked(bool)));
+    //connect(undo, SIGNAL(clicked(bool)), chart, SLOT(undo()));
     // изменение параметров фильтрации
-    connect(gate, SIGNAL(valueChanged(int)), chart, SLOT(setGate(int)));
-    connect(cutout, SIGNAL(valueChanged(int)), chart, SLOT(setCutout(int)));
-    // изменение размеров
-    connect(zoomx, SIGNAL(valueChanged(int)), chart, SLOT(zoomx(int)));
-    connect(zoomy, SIGNAL(valueChanged(int)), chart, SLOT(zoomy(int)));
+    //connect(gate, SIGNAL(valueChanged(int)), chart, SLOT(setGate(int)));
+    //connect(cutout, SIGNAL(valueChanged(int)), chart, SLOT(setCutout(int)));
     // фильтрация
-    connect(filter, SIGNAL(clicked(bool)), chart, SLOT(filter()));
+    //connect(filter, SIGNAL(clicked(bool)), chart, SLOT(filter()));
 }
 
 /**
@@ -182,35 +192,10 @@ void MainWindow::on_actionSave_triggered()
     );
 
     if (!fileName.isEmpty()) {
-        this->_data->save(fileName);
+        if (this->_data->save(fileName)) {
+            QMessageBox::information(this, "Сохранение завершено", "Файл " + fileName + " успешно сохранен.");
+        } else {
+            QMessageBox::warning(this, "Ошибка сохранения файла", "При сохранении файла " + fileName + " произошла ошибка. Попробуйте сохранить в другую директорию.");
+        }
     }
-}
-
-
-
-
-
-void MainWindow::on_gate_1_valueChanged(int arg1)
-{
-    //_ui->chart_1->filter(arg1);
-}
-
-void MainWindow::on_preview_1_clicked()
-{
-    //_ui->chart_1->filter(_ui->gate_1->value());
-}
-
-void MainWindow::on_filter_1_clicked()
-{
-    //_ui->chart_1->cut(_ui->gate_1->value(), _ui->cutout_1->value());
-}
-
-void MainWindow::on_zoomx_1_valueChanged(int value)
-{
-    //_ui->chart_1->setZoom(value, 0);
-}
-
-void MainWindow::on_zoomy_1_valueChanged(int value)
-{
-    //_ui->chart_1->setZoom(0, value / 10.0);
 }

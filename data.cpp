@@ -42,7 +42,7 @@ void Data::load(QString fileName)
  * @brief Data::save
  * @param fileName
  */
-void Data::save(QString fileName)
+bool Data::save(QString fileName)
 {
     // Создаем файл
     QFile saveFile(fileName);
@@ -57,18 +57,18 @@ void Data::save(QString fileName)
         stream << this->_head;
 
         // ПО всей длинне файла
-        for (long i = 0; i < this->_canals.at(0)->length(); i++) {
+        for (long i = 0; i < this->_canalsNew.at(0)->length(); i++) {
 
             // Создаем пустую строку
             QString line = "";
 
             // По всем каналам файла
-            for (int c = 0; c < this->_canals.length(); c++) {
+            for (int c = 0; c < this->_canalsNew.length(); c++) {
                 // Дописываем к строке данные, заменив точку запятой
-                line += QString::number(_canals.at(c)->get(i)).replace(".", ",");
+                line += QString::number(_canalsNew.at(c)->get(i)).replace(".", ",");
 
                 // Если это не последняя запись
-                if (c != this->_canals.length() - 1) {
+                if (c != this->_canalsNew.length() - 1) {
 
                     // Добавляем к строке символ табуляции
                     line += "\t";
@@ -78,10 +78,12 @@ void Data::save(QString fileName)
             // Дописываем в файл строку
             stream << line << endl;
         }
+        // Закрываем файл
+        saveFile.close();
+        return true;
     }
 
-    // Закрываем файл
-    saveFile.close();
+    return false;
 }
 
 /**
@@ -93,6 +95,20 @@ Canal* Data::get(int canal)
 {
     if (canal >= 0 && canal < this->_canals.length()) {
         return this->_canals[canal];
+    }
+
+    return new Canal();
+}
+
+/**
+ * @brief Data::getNew
+ * @param canal
+ * @return
+ */
+Canal* Data::getNew(int canal)
+{
+    if (canal >= 0 && canal < this->_canalsNew.length()) {
+        return this->_canalsNew[canal];
     }
 
     return new Canal();
@@ -123,6 +139,7 @@ void Data::loadMegawin(QFile &file)
 
     // Очищаем массив данных
     this->_canals.clear();
+    this->_canalsNew.clear();
 
     // Читаем остальные данные до конца файла, заносим их в массив
     while(!line.isEmpty()) {
@@ -143,6 +160,10 @@ void Data::loadMegawin(QFile &file)
                 Canal *newCanal = new Canal();
                 newCanal->setName("Канал № " + QString::number(canal + 1));
                 this->_canals.push_back(newCanal);
+
+                Canal *newCanal2 = new Canal();
+                newCanal2->setName("Канал № " + QString::number(canal + 1));
+                this->_canalsNew.push_back(newCanal2);
             }
         }
 
@@ -154,6 +175,7 @@ void Data::loadMegawin(QFile &file)
 
             // Записываем в чанк число, заменив запятую на точку
             this->_canals[canal]->add(str.replace(",", ".").toFloat());
+            this->_canalsNew[canal]->add(str.replace(",", ".").toFloat());
         }
     }
 }

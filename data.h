@@ -7,8 +7,9 @@ class Data
 {
 public:
     void    load(QString fileName);
-    void    save(QString fileName);
+    bool    save(QString fileName);
     Canal*  get(int canal);
+    Canal*  getNew(int canal);
     int     getCount() const;
 
 private:
@@ -16,6 +17,7 @@ private:
 
 private:
     QList<Canal*>   _canals;
+    QList<Canal*>   _canalsNew;
     QString         _head;
 };
 

@@ -27,6 +27,11 @@ void Canal::add(float value)
     this->_length++;
 }
 
+/**
+ * @brief Canal::set
+ * @param position
+ * @param value
+ */
 void Canal::set(long position, float value)
 {
     // Если есть запись с таким номером
@@ -83,4 +88,42 @@ QString Canal::getName() const
 void Canal::setName(QString name)
 {
     this->_name = name;
+}
+
+/**
+ * @brief Canal::clone
+ * @return
+ */
+Canal* Canal::clone()
+{
+    Canal* canal = new Canal();
+    canal->setName(this->getName());
+    for (long i = 0; i < this->length(); i++) {
+        canal->add(this->get(i));
+    }
+    return canal;
+}
+
+/**
+ * @brief Canal::getData
+ * @return
+ */
+QVector<double>  Canal::getData() {
+    QVector<double> vector;
+    for (long i = 0; i < this->length(); i++) {
+        vector.push_back(this->get(i));
+    }
+    return vector;
+}
+
+/**
+ * @brief Canal::getNumbers
+ * @return
+ */
+QVector<double>   Canal::getNumbers() {
+    QVector<double> vector;
+    for (long i = 0; i < this->length(); i++) {
+        vector.push_back(i);
+    }
+    return vector;
 }
