@@ -2,10 +2,12 @@
 #include <QTextStream>
 
 /**
- * @brief Data::load
+ * Загрузка данных с файла
+ *
+ * @brief loadFromFile
  * @param fileName
  */
-void Data::load(QString fileName)
+void Data::loadFromFile(QString fileName)
 {
     // Выбираем файл
     QFile file(fileName);
@@ -38,11 +40,16 @@ void Data::load(QString fileName)
     }
 }
 
+
+
 /**
- * @brief Data::save
+ * Экспорт данных в файл
+ *
+ * @brief saveToFile
  * @param fileName
+ * @return
  */
-bool Data::save(QString fileName)
+bool Data::saveToFile(QString fileName)
 {
     // Создаем файл
     QFile saveFile(fileName);
@@ -57,18 +64,18 @@ bool Data::save(QString fileName)
         stream << this->_head;
 
         // ПО всей длинне файла
-        for (long i = 0; i < this->_canalsNew.at(0)->length(); i++) {
+        for (long i = 0; i < this->_canals.at(0)->length(); i++) {
 
             // Создаем пустую строку
             QString line = "";
 
             // По всем каналам файла
-            for (int c = 0; c < this->_canalsNew.length(); c++) {
+            for (int c = 0; c < this->_canals.length(); c++) {
                 // Дописываем к строке данные, заменив точку запятой
-                line += QString::number(_canalsNew.at(c)->get(i)).replace(".", ",");
+                line += QString::number(_canals.at(c)->get(i)).replace(".", ",");
 
                 // Если это не последняя запись
-                if (c != this->_canalsNew.length() - 1) {
+                if (c != this->_canals.length() - 1) {
 
                     // Добавляем к строке символ табуляции
                     line += "\t";
@@ -82,49 +89,53 @@ bool Data::save(QString fileName)
         saveFile.close();
         return true;
     }
-
     return false;
 }
 
+
+
 /**
- * @brief Data::get
+ * Получение нужного канала
+ *
+ * @brief getCanal
  * @param canal
  * @return
  */
-Canal* Data::get(int canal)
+Canal* Data::getCanal(int canal)
 {
+    // Проверяем - существует ли канал
     if (canal >= 0 && canal < this->_canals.length()) {
+
+        // Возвращаем выбранный канал
         return this->_canals[canal];
-    }
 
-    return new Canal();
+    } else {
+
+        // Возвращаем пустой указатель
+        return nullptr;
+
+    }
 }
 
-/**
- * @brief Data::getNew
- * @param canal
- * @return
- */
-Canal* Data::getNew(int canal)
-{
-    if (canal >= 0 && canal < this->_canalsNew.length()) {
-        return this->_canalsNew[canal];
-    }
 
-    return new Canal();
-}
 
 /**
- * @brief Data::getCount
+ * Количество загруженных каналов
+ *
+ * @brief countCanal
  * @return
  */
-int Data::getCount() const
+int Data::countCanal() const
 {
     return this->_canals.length();
 }
 
+
+
 /**
- * @brief Data::loadMegawin
+ * Загрузка данных из экспортного файла мегавин
+ *
+ * @brief loadMegawin
  * @param file
  */
 void Data::loadMegawin(QFile &file)
@@ -139,7 +150,6 @@ void Data::loadMegawin(QFile &file)
 
     // Очищаем массив данных
     this->_canals.clear();
-    this->_canalsNew.clear();
 
     // Читаем остальные данные до конца файла, заносим их в массив
     while(!line.isEmpty()) {
@@ -160,22 +170,19 @@ void Data::loadMegawin(QFile &file)
                 Canal *newCanal = new Canal();
                 newCanal->setName("Канал № " + QString::number(canal + 1));
                 this->_canals.push_back(newCanal);
-
-                Canal *newCanal2 = new Canal();
-                newCanal2->setName("Канал № " + QString::number(canal + 1));
-                this->_canalsNew.push_back(newCanal2);
             }
         }
 
         // Для каждого канала
-        for(int canal = 0; canal < this->_canals.length(); canal++)
+        for(int canal = 0; canal < this->countCanal(); canal++)
         {
             // Вытаскиваем само число в виде строки
             QString str = list.at(canal);
 
             // Записываем в чанк число, заменив запятую на точку
-            this->_canals[canal]->add(str.replace(",", ".").toFloat());
-            this->_canalsNew[canal]->add(str.replace(",", ".").toFloat());
+            Canal* currentCanal = this->_canals[canal];
+            float value = str.replace(",", ".").toFloat();
+            currentCanal->add(value);
         }
     }
 }

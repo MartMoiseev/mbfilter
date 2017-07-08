@@ -58,7 +58,7 @@ void MainWindow::on_actionOpen_triggered()
     if(!fileName.isEmpty())
     {
         // Загружаем файл
-        this->_data->load(fileName);
+        this->_data->loadFromFile(fileName);
         this->setWindowTitle(fileName.split("/").back());
 
         _ui->statusBar->showMessage("Файл \"" + fileName.split("/").back() + "\" успешно загружен!", 7000);
@@ -73,9 +73,9 @@ void MainWindow::on_actionOpen_triggered()
             _ui->canalLayout->addWidget(_splitter);
         }
 
-        int max = this->_data->getCount();
+        int max = this->_data->countCanal();
         for (int c = 0; c < max; c++) {
-            this->addLayout(this->_data->get(c), this->_data->getNew(c));
+            this->addLayout(this->_data->getCanal(c));
         }
 
         QMessageBox::information(this, "Загрузка завершена", "Файл " + fileName + " успешно загружен.");
@@ -85,7 +85,7 @@ void MainWindow::on_actionOpen_triggered()
 /**
  * @brief MainWindow::addLayout
  */
-void MainWindow::addLayout(Canal* canal, Canal* canalNew)
+void MainWindow::addLayout(Canal* canal)
 {
     QSizePolicy expand(QSizePolicy::Expanding, QSizePolicy::Expanding);
     expand.setHorizontalStretch(1);
@@ -141,6 +141,7 @@ void MainWindow::addLayout(Canal* canal, Canal* canalNew)
     QCustomPlot* plot = new QCustomPlot();
 
     plot->setSizePolicy(expand);
+    plot->setFixedHeight(256);
     plot->addGraph();
     plot->setInteraction(QCP::iRangeDrag, true);
     plot->setInteraction(QCP::iRangeZoom, true);
@@ -192,7 +193,7 @@ void MainWindow::on_actionSave_triggered()
     );
 
     if (!fileName.isEmpty()) {
-        if (this->_data->save(fileName)) {
+        if (this->_data->saveToFile(fileName)) {
             QMessageBox::information(this, "Сохранение завершено", "Файл " + fileName + " успешно сохранен.");
         } else {
             QMessageBox::warning(this, "Ошибка сохранения файла", "При сохранении файла " + fileName + " произошла ошибка. Попробуйте сохранить в другую директорию.");

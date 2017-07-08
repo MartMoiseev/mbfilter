@@ -10,7 +10,7 @@ public:
     /**
      * @brief SIZE Размер чанка 20000
      */
-    static const int SIZE = 100;
+    static const int SIZE = 20000;
 
 public:
     /**

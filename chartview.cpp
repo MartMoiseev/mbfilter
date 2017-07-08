@@ -104,17 +104,6 @@ void ChartView::renderData()
 }
 
 /**
- * @brief ChartView::resizeEvent
- * @param event
- */
-void ChartView::resizeEvent(QResizeEvent *event)
-{
-    if (this->_canalNew) {
-        this->renderData();
-    }
-}
-
-/**
  * @brief ChartView::preview
  */
 void ChartView::preview()
@@ -300,50 +289,4 @@ void ChartView::undo()
             this->renderData();
         }
     }
-}
-
-/**
- * @brief ChartView::mousePressEvent
- * @param event
- */
-void ChartView::mousePressEvent(QMouseEvent *event)
-{
-    _origin = event->pos();
-    if (_rubberBand == nullptr) {
-        _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-    }
-    _rubberBand->setGeometry(QRect(_origin, QSize()));
-    _rubberBand->show();
-}
-
-/**
- * @brief ChartView::mouseMoveEvent
- * @param event
- */
-void ChartView::mouseMoveEvent(QMouseEvent *event)
-{
-    _rubberBand->setGeometry(QRect(_origin, event->pos()).normalized());
-}
-
-/**
- * @brief ChartView::mouseReleaseEvent
- * @param event
- */
-void ChartView::mouseReleaseEvent(QMouseEvent *event)
-{
-    _rubberBand->hide();
-    QPoint pos = _rubberBand->pos();
-    QRect rect = _rubberBand->rect();
-
-    int scrollLeft = this->horizontalScrollBar()->value();
-
-    QPainterPath path;
-    path.moveTo(pos.x() * _xZoom + scrollLeft * _xZoom, -300 / _yZoom);
-    path.lineTo(pos.x() * _xZoom + scrollLeft * _xZoom, 300 / _yZoom);
-
-    path.moveTo(pos.x() * _xZoom + rect.right() * _xZoom + scrollLeft * _xZoom, -300 / _yZoom);
-    path.lineTo(pos.x() * _xZoom + rect.right() * _xZoom + scrollLeft * _xZoom, 300 / _yZoom);
-
-    this->_filter->setPath(path);
-    this->_filter->setPen(QPen(QBrush(QColor(0, 255, 0, 192)), 10.0));
 }

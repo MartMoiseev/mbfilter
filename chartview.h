@@ -18,11 +18,6 @@ public:
     void    setZoom(qreal xZoom, qreal yZoom);
     void    renderData();
 
-    void    resizeEvent(QResizeEvent *event);
-    void    mousePressEvent(QMouseEvent *event);
-    void    mouseMoveEvent(QMouseEvent *event);
-    void    mouseReleaseEvent(QMouseEvent *event);
-
 private:
     void    filterMiddle(long position);
     void    filterChain(long position);
