@@ -31,7 +31,6 @@ SOURCES += main.cpp\
     canal.cpp \
     spacer.cpp \
     qcustomplot.cpp \
-    filter.cpp \
     data.cpp
 
 HEADERS  += mainwindow.h \
@@ -40,7 +39,6 @@ HEADERS  += mainwindow.h \
     canal.h \
     spacer.h \
     qcustomplot.h \
-    filter.h \
     data.h
 
 FORMS    += mainwindow.ui

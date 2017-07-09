@@ -174,7 +174,7 @@ void Data::loadMegawin(QFile &file)
         }
 
         // Для каждого канала
-        for(int canal = 0; canal < this->countCanal(); canal++)
+        for(int canal = 0; canal < list.length(); canal++)
         {
             // Вытаскиваем само число в виде строки
             QString str = list.at(canal);
@@ -185,4 +185,5 @@ void Data::loadMegawin(QFile &file)
             currentCanal->add(value);
         }
     }
+
 }

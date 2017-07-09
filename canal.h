@@ -83,8 +83,20 @@ public:
      */
     Canal*  clone();
 
+    /**
+     * Возвращает массив данных
+     *
+     * @brief getData
+     * @return
+     */
+    QVector<double>  getData();
 
-    QVector<double>  getData();        
+    /**
+     * Возвращает массив указателей на значения
+     *
+     * @brief getNumbers
+     * @return
+     */
     QVector<double>  getNumbers();
 
 private:

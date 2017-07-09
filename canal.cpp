@@ -139,12 +139,12 @@ void Canal::setName(QString name)
  */
 Canal* Canal::clone()
 {
-    Canal* canal = new Canal();
-    canal->setName(this->getName());
+    Canal* newcanal = new Canal();
+    newcanal->setName(this->getName());
     for (long i = 0; i < this->_length; i++) {
-        canal->add(this->get(i));
+        newcanal->add(this->get(i));
     }
-    return canal;
+    return newcanal;
 }
 
 

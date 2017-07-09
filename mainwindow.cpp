@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include "QFileDialog.h"
 #include "QFile.h"
-#include "qcustomplot.h"
+#include "chartview.h"
 
 #include <QByteArray>
 #include <QDebug.h>
@@ -95,7 +95,8 @@ void MainWindow::addLayout(Canal* canal)
     label->setText(canal->getName());
 
     QPushButton* undo = new QPushButton(this);
-    undo->setText("<<");
+    undo->setText("Отменить");
+    undo->setEnabled(false);
 
     QSpinBox* gate = new QSpinBox(this);
     gate->setSuffix(" ед");
@@ -104,6 +105,7 @@ void MainWindow::addLayout(Canal* canal)
     gate->setMaximum(1000);
     gate->setValue(50);
     gate->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+    gate->setSingleStep(5);
 
     QPushButton* preview = new QPushButton(this);
     preview->setText("Просмотр");
@@ -116,18 +118,15 @@ void MainWindow::addLayout(Canal* canal)
     cutout->setMaximum(100);
     cutout->setValue(10);
     cutout->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+    gate->setSingleStep(5);
 
     QPushButton* filter = new QPushButton("Отфильтровать", this);
     filter->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
-    QCheckBox* bypass = new QCheckBox("Filter", this);
+    QCheckBox* bypass = new QCheckBox("Оригинал", this);
+    bypass->setChecked(true);
 
-    QSlider* zoomx = new QSlider(this);
-    zoomx->setMinimum(1);
-    zoomx->setMaximum(15);
-    zoomx->setValue(1);
-    zoomx->setOrientation(Qt::Horizontal);
-    zoomx->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+    QSpacerItem* spacer = new QSpacerItem(100, 100);
 
     QVBoxLayout *leftLayout = new QVBoxLayout;
     leftLayout->addWidget(label);
@@ -136,19 +135,20 @@ void MainWindow::addLayout(Canal* canal)
     leftLayout->addWidget(cutout);
     leftLayout->addWidget(filter);
     leftLayout->addWidget(bypass);
+    leftLayout->addSpacerItem(spacer);
     leftLayout->addWidget(undo);
 
-    QCustomPlot* plot = new QCustomPlot();
+    ChartView* plot = new ChartView();
 
+    plot->setCanal(canal);
     plot->setSizePolicy(expand);
     plot->setFixedHeight(256);
-    plot->addGraph();
     plot->setInteraction(QCP::iRangeDrag, true);
+    plot->xAxis->setRange(0, canal->length());
     plot->setInteraction(QCP::iRangeZoom, true);
-    plot->graph(0)->setData(canal->getNumbers(), canal->getData());
 
-    plot->xAxis->setLabel("msec");
-    plot->yAxis->setLabel("mkV");
+    //plot->xAxis->setLabel("msec");
+    //plot->yAxis->setLabel("mkV");
 
     plot->xAxis->setRange(0, canal->length());
     plot->yAxis->setRange(-500, 500);
@@ -168,16 +168,24 @@ void MainWindow::addLayout(Canal* canal)
     _splitter->addWidget(canalWidget);
 
     // предварительный просмотр
-    //connect(preview, SIGNAL(clicked(bool)), chart, SLOT(preview()));
-    //connect(bypass, SIGNAL(clicked(bool)), chart, SLOT(setPreview(bool)));
-    //connect(chart, SIGNAL(changeBypass(bool)), bypass, SLOT(setChecked(bool)));
-    //connect(undo, SIGNAL(clicked(bool)), chart, SLOT(undo()));
+    connect(preview, SIGNAL(clicked(bool)), plot, SLOT(preview()));
+    connect(preview, SIGNAL(clicked(bool)), this, SLOT(previewFinished()));
+
+    connect(bypass, SIGNAL(clicked(bool)), plot, SLOT(setBypass(bool)));
+    connect(plot, SIGNAL(changeBypass(bool)), bypass, SLOT(setChecked(bool)));
+
+    connect(undo, SIGNAL(clicked(bool)), plot, SLOT(undo()));
+    connect(plot, SIGNAL(undoDisabled(bool)), undo, SLOT(setDisabled(bool)));
+
     // изменение параметров фильтрации
-    //connect(gate, SIGNAL(valueChanged(int)), chart, SLOT(setGate(int)));
-    //connect(cutout, SIGNAL(valueChanged(int)), chart, SLOT(setCutout(int)));
+    connect(gate, SIGNAL(valueChanged(int)), plot, SLOT(setGate(int)));
+    connect(cutout, SIGNAL(valueChanged(int)), plot, SLOT(setCutout(int)));
+
     // фильтрация
-    //connect(filter, SIGNAL(clicked(bool)), chart, SLOT(filter()));
+    connect(filter, SIGNAL(clicked(bool)), plot, SLOT(filter()));
 }
+
+
 
 /**
  * @brief MainWindow::on_actionSave_triggered
@@ -199,4 +207,15 @@ void MainWindow::on_actionSave_triggered()
             QMessageBox::warning(this, "Ошибка сохранения файла", "При сохранении файла " + fileName + " произошла ошибка. Попробуйте сохранить в другую директорию.");
         }
     }
+}
+
+
+
+/**
+ * @brief MainWindow::showMessage
+ * @param string
+ */
+void MainWindow::previewFinished()
+{
+    _ui->statusBar->showMessage("Поиск пиков завершен!", 3000);
 }

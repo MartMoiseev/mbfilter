@@ -3,20 +3,18 @@
 
 #include <canal.h>
 
-#include <QGraphicsView>
+#include "qcustomplot.h"
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
 #include <QRubberBand>
 #include "spacer.h"
 
-class ChartView : public QGraphicsView
+class ChartView : public QCustomPlot
 {
     Q_OBJECT
 public:
-            ChartView(QWidget *parent = 0);
-    void    setCanal(Canal* canal, Canal* canalNew);
-    void    setZoom(qreal xZoom, qreal yZoom);
-    void    renderData();
+    void    setCanal(Canal* original);
+    void    rerender();
 
 private:
     void    filterMiddle(long position);
@@ -26,32 +24,27 @@ private:
 public slots:
     void    preview();
     void    filter();
-    void    zoomx(int x);
-    void    zoomy(int y);
+
     void    setGate(int gate);
     void    setCutout(int cutout);
-    void    setPreview(bool);
+    void    setBypass(bool);
     void    setSpacer(int spacer);
+
     void    undo();
 
 signals:
     void    changeBypass(bool);
+    void    undoDisabled(bool);
 
 private:
     Canal*              _original = nullptr;
-    Canal*              _canalNew = nullptr;
+    Canal*              _canal = nullptr;
     QList<Canal*>       _history;
-    QGraphicsScene*     _scene = nullptr;
-    QGraphicsPathItem*  _chart = nullptr;
-    QGraphicsPathItem*  _filter = nullptr;
-    QRubberBand*        _rubberBand = nullptr;
+    QCPGraph*           _graph;
 
-    qreal               _xZoom = 1.0;
-    qreal               _yZoom = 1.0;
-    QPoint              _origin;
     int                 _gate = 50;
     int                 _cutout = 10;
-    bool                _preview = false;
+    bool                _bypass = true;
     int                 _spacer = Spacer::MIDDLE;
 };
 
