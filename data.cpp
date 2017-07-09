@@ -133,6 +133,18 @@ int Data::countCanal() const
 
 
 /**
+ * @brief Data::setCanal
+ * @param id
+ * @param canal
+ */
+void Data::setCanal(int id, Canal *canal)
+{
+    this->_canals[id] = canal;
+}
+
+
+
+/**
  * Загрузка данных из экспортного файла мегавин
  *
  * @brief loadMegawin

@@ -75,7 +75,7 @@ void MainWindow::on_actionOpen_triggered()
 
         int max = this->_data->countCanal();
         for (int c = 0; c < max; c++) {
-            this->addLayout(this->_data->getCanal(c));
+            this->addLayout(c, this->_data->getCanal(c));
         }
 
         QMessageBox::information(this, "Загрузка завершена", "Файл " + fileName + " успешно загружен.");
@@ -85,7 +85,7 @@ void MainWindow::on_actionOpen_triggered()
 /**
  * @brief MainWindow::addLayout
  */
-void MainWindow::addLayout(Canal* canal)
+void MainWindow::addLayout(int id, Canal* canal)
 {
     QSizePolicy expand(QSizePolicy::Expanding, QSizePolicy::Expanding);
     expand.setHorizontalStretch(1);
@@ -138,7 +138,7 @@ void MainWindow::addLayout(Canal* canal)
     leftLayout->addSpacerItem(spacer);
     leftLayout->addWidget(undo);
 
-    ChartView* plot = new ChartView();
+    ChartView* plot = new ChartView(id);
 
     plot->setCanal(canal);
     plot->setSizePolicy(expand);
@@ -183,6 +183,8 @@ void MainWindow::addLayout(Canal* canal)
 
     // фильтрация
     connect(filter, SIGNAL(clicked(bool)), plot, SLOT(filter()));
+
+    connect(plot, SIGNAL(changeChanal(int,Canal*)), this->_data, SLOT(setCanal(int,Canal*)));
 }
 
 

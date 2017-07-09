@@ -1,6 +1,17 @@
 #include "chartview.h"
 
 /**
+ * @brief ChartView::ChartView
+ * @param id
+ */
+ChartView::ChartView(int id)
+{
+    this->_id = id;
+}
+
+
+
+/**
  * @brief ChartView::setCanal
  * @param canal
  */
@@ -79,11 +90,12 @@ void ChartView::filter()
     // Клонируем весь канал, для отмены
     this->_history.push_back(this->_canal->clone());
 
-    // Включаем кнопку отмены
-    emit undoDisabled(false);
-
     // Выбираем последний канал как текущий
     this->_canal = this->_history.last();
+
+    // Включаем кнопку отмены
+    emit undoDisabled(false);
+    emit changeChanal(this->_id, this->_canal);
 
     // Обрабатываем все данные
     for(long i = 1; i < this->_canal->length() - _cutout; i++) {
@@ -242,4 +254,6 @@ void ChartView::undo()
     } else {
         emit undoDisabled(false);
     }
+
+    emit changeChanal(this->_id, this->_canal);
 }

@@ -13,6 +13,7 @@ class ChartView : public QCustomPlot
 {
     Q_OBJECT
 public:
+            ChartView(int);
     void    setCanal(Canal* original);
     void    rerender();
 
@@ -35,6 +36,7 @@ public slots:
 signals:
     void    changeBypass(bool);
     void    undoDisabled(bool);
+    void    changeChanal(int, Canal*);
 
 private:
     Canal*              _original = nullptr;
@@ -42,6 +44,7 @@ private:
     QList<Canal*>       _history;
     QCPGraph*           _graph;
 
+    int                 _id;
     int                 _gate = 50;
     int                 _cutout = 10;
     bool                _bypass = true;

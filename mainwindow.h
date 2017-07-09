@@ -23,7 +23,7 @@ public:
     ~MainWindow();
 
 public:
-    void addLayout(Canal* canal);
+    void addLayout(int id, Canal* canal);
 
 private slots:
     void on_actionOpen_triggered();

@@ -9,8 +9,9 @@
  *
  * @brief The Data class
  */
-class Data
+class Data : public QObject
 {
+    Q_OBJECT
 public:
     /**
      * Загрузка данных с файла
@@ -51,6 +52,16 @@ public:
      * @return
      */
     int     countCanal() const;
+
+
+
+public slots:
+    /**
+     * @brief setCanal
+     * @param id
+     * @param canal
+     */
+    void    setCanal(int id, Canal* canal);
 
 
 
